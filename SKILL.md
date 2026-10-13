@@ -1,13 +1,17 @@
 ---
 name: eng-reverse
-description: Engineering-grade reverse-engineering operating mode. Combines eng-mode's disciplined workflow (smallest coherent change, root-cause focus, proof against the real artifact) with a structured reverse-engineering pipeline — recon, analysis, hypothesis, verification, documentation. Use for reverse engineering binaries, APKs, firmware, obfuscated/minified frontend JS, protocols, malware triage, CTF challenges, and authorized security assessments where rigor and reproducibility matter.
+description: Reverse-then-build operating mode. Recover a spec from an artifact with reverse-engineering discipline (recon, analysis, hypothesis), turn it into a build plan, then implement under eng-mode playbooks and principles, and finish with verification and documentation. Use when you must reverse engineer (binaries, APKs, firmware, obfuscated JS, protocols, CTF, authorized assessments) and then plan and build a reimplementation, port, patch, client, or compatible tool with engineering rigor.
 ---
 
 # Eng Reverse
 
-Understand the artifact, not your guess about it. Smallest coherent probe. Prove the real behavior with evidence, never speculation. Every claim traces to an observation.
+**Reverse → Plan → Build.** Both reverse-skill and eng-mode matter; the order is fixed.
 
-Eng Reverse takes eng-mode's engineering discipline and applies it to the inverse problem: instead of building a system from a spec, you recover the spec from a system. The same bar holds — correctness first, root causes over symptoms, proof against the real artifact — expressed as a reverse-engineering pipeline.
+1. **Reverse** recovers the spec from the artifact (evidence, not vibes).
+2. **Plan** turns that recovered knowledge into a concrete build plan.
+3. **Build** uses eng-mode discipline — smallest coherent change, root-cause fixes, prove against the real artifact — to implement the plan.
+
+Understand the artifact before you write code. Smallest coherent probe, then smallest coherent change. Every claim traces to an observation; every deliverable is proven.
 
 ## Authorization gate (MUST, read first)
 
@@ -17,14 +21,22 @@ Reverse engineering and security testing are only legitimate on artifacts you ow
 - Offline/local samples (a binary, an APK file, a firmware image you hold) may be analyzed statically without a live target, but still respect licensing and local law.
 - Never exfiltrate real secrets, user data, or credentials. Redact every secret in notes and reports: write `<REDACTED>` in its place and keep live values in environment variables, never in captured artifacts you show.
 - If authorization is unclear, stop and ask. This gate is not optional and Force/urgency never bypasses it.
+- The Build phase inherits the same scope: do not ship credentials, bypasses of third-party protections outside authorization, or code that attacks unauthorized targets.
 
 ## The pipeline
 
-Work moves through five phases. Skip a phase only with an explicit, written reason. Each phase ends with evidence, not a feeling.
+Work moves through seven phases. Skip a phase only with an explicit, written reason. Each phase ends with evidence or an artifact, not a feeling.
+
+```
+Recon → Analysis → Hypothesis → Plan → Build (eng-mode) → Verification → Documentation
+\______________________________/   \____________________/
+         reverse recovers                   eng-mode drives
+              the spec                        the build
+```
 
 ### 1. Recon
 
-Map the terrain before touching internals. Cheap, read-only, broad.
+Map the terrain before touching internals. Cheap, read-only, broad. (reverse-skill)
 
 - Identify artifact type and toolchain: `file`, magic bytes, headers, packer/obfuscator signatures, language/runtime, architecture, build metadata.
 - Inventory structure: sections/segments, imports/exports, strings, embedded resources, manifests, entry points, bundled configs.
@@ -34,7 +46,7 @@ Map the terrain before touching internals. Cheap, read-only, broad.
 
 ### 2. Analysis
 
-Understand the selected region. Static first, then dynamic only as needed.
+Understand the selected region. Static first, then dynamic only as needed. (reverse-skill)
 
 - Static: disassemble/decompile the narrowest relevant function or module; trace data flow for the value you care about (a signature, a token, a decryption key, a gated branch).
 - Dynamic (only when static is insufficient, and only within authorization): hook the narrowest trust boundary — the signer, crypto helper, JNI/FFI bridge, request builder — and record inputs and outputs at that boundary. Prefer narrow hooks over broad UI tracing.
@@ -43,64 +55,97 @@ Understand the selected region. Static first, then dynamic only as needed.
 
 ### 3. Hypothesis
 
-State what you think the artifact does, as a falsifiable claim.
+State what you think the artifact does, as a falsifiable claim. (reverse-skill)
 
 - Write the hypothesis concretely: "the signature is HMAC-SHA256 over `method+path+body+nonce` with key derived from `X`", not "it signs the request somehow".
 - Name the decisive observation that would confirm or refute it, and the cheapest experiment that produces it.
 - Keep competing hypotheses explicit when the evidence is ambiguous; do not collapse to one prematurely. Apply `principle-attack-the-premise` when repeated experiments fail the same way — question the shared assumption instead of running another variant.
+- A hypothesis that survives the decisive experiment becomes the **recovered spec** handed to Plan. Do not enter Plan on unfalsified speculation — label remaining gaps `[INFERENCE]` and carry them explicitly.
 
-### 4. Verification
+### 4. Plan
 
-Prove it. A hypothesis is not a finding until it is reproduced.
+Turn the recovered spec into a build plan. Do not start writing production code in this phase.
 
-- Reproduce the behavior from the smallest independent artifact: a standalone script that reconstructs the signature, decrypts the blob, replays the accepted request, or triggers the gated branch.
+- Write the recovered contract: inputs, outputs, invariants, error cases, and the surface the reimplementation must match (API, file format, protocol, CLI, library).
+- Choose the deliverable: reimplementation, compatible client, port, patch, decoder, test harness, or documentation-only — and say why that choice is the smallest that satisfies the goal.
+- Decompose into verifiable units: ordered steps, each with an observable acceptance check. Prefer a thin vertical slice that proves the core contract first.
+- Name data shapes and module boundaries before APIs. Apply eng-mode's `principle-model-the-domain` and `principle-sequence-verifiable-units`.
+- Call out risks, open `[INFERENCE]` gaps, and what will be proven in Verification versus assumed.
+- Exit criterion: a short plan artifact (in the reply or a file) that a fresh eng-mode session could execute without re-deriving the reverse work. See `references/plan-build.md`.
+
+### 5. Build (eng-mode)
+
+Implement the plan under eng-mode discipline. This is where eng-mode owns the work. (eng-mode)
+
+- Route the work: feature / bug-fix / refactoring / investigation as eng-mode would. Prefer the smallest coherent change that lands one verifiable unit at a time.
+- Apply eng-mode principles at decision points — do not preload the catalog; read a leaf when it governs the choice and name the choice it changed:
+  - `principle-laziness-protocol` / `principle-subtract-before-you-add` when sizing the diff.
+  - `principle-model-the-domain` for stateful logic and shared shapes.
+  - `principle-test-behavior-not-implementation` when writing tests.
+  - `principle-migrate-callers-then-delete-legacy-apis` when replacing interfaces.
+  - `principle-make-operations-idempotent` for scripts and lifecycle steps.
+- Prove against the **real** contract recovered in reverse: call the code the way its users (or the original artifact) do. A green unit test that never exercises the recovered surface is not enough.
+- Do not reopen reverse analysis mid-build unless Verification falsifies the recovered spec. If it does, return to Hypothesis with the new evidence — do not patch around a wrong model.
+- If eng-mode itself is installed in the session (`/eng-mode` or sibling eng-mode skills), defer playbook routing, todo ownership, and delegation rules to it for this phase. This skill's Build section is the portable subset when eng-mode is not loaded.
+
+### 6. Verification
+
+Prove the build against the recovered contract and the original artifact.
+
+- Reproduce the original behavior from the smallest independent artifact: a standalone script, round-trip test, or replay that matches the artifact's own inputs/outputs — not hand-picked cases alone.
 - Verify on the same surface the real artifact uses. A reimplementation that matches on your inputs but diverges on the artifact's inputs is unverified.
 - `principle-prove-it-works`: a claim without a reproduction you can rerun is inference, and must be labeled `[INFERENCE]`.
-- Explain any measured number (timing side channels, entropy, match rates) — rule out that you measured something other than the mechanism. Apply `principle-explain-the-number`.
+- Explain any measured number (timing, entropy, match rates) — rule out that you measured something other than the mechanism. Apply `principle-explain-the-number`.
+- If Verification fails, diagnose whether the failure is in Build (fix under eng-mode) or in the recovered spec (return to Hypothesis → Plan). Do not silently widen scope.
 
-### 5. Documentation
+### 7. Documentation
 
-Capture the recovered knowledge so the next person (or run) inherits it.
+Capture both the reverse findings and the build so the next person inherits them.
 
-- Structure findings as Evidence → Finding → Path: what you observed, what it means, and the reproducible route to it.
-- Deliver the smallest reproducible artifact (script, patch, keys, request recipe) alongside the prose.
-- Record a field-journal entry for reusable precedent: the target class, the decisive boundary, and the technique that worked, so it becomes method rather than memory.
+- Structure reverse findings as Evidence → Finding → Path: what you observed, what it means, and the reproducible route to it.
+- Document the plan and what shipped: the contract, the verifiable units, and how to rerun Verification.
+- Deliver the smallest reproducible artifacts (scripts, patches, tests, request recipes) alongside the prose.
+- Record a field-journal entry for reusable precedent: the target class, the decisive boundary, the technique that worked, and the build approach.
 - Redact every secret. Cite only artifacts actually produced this session.
 
 ## Routing
 
 Pick the narrowest relevant reference. Load it only when the phase needs it; do not preload.
 
-- Native binary (ELF/PE/Mach-O), CTF pwn/crackme, anti-analysis: `references/binary-recon.md`.
+- Native binary (ELF/PE/Mach-O), CTF pwn/crackme, anti-analysis: `references/binary-recon.md` (Recon/Analysis).
 - Android APK / mobile runtime, Frida hooking, signing/pinning: `references/mobile-apk.md`.
 - Obfuscated or minified frontend JS, encryption params, browser runtime: `references/web-js.md`.
 - Firmware image, embedded device, protocol/traffic replay: `references/firmware-protocol.md`.
-- Choosing and verifying the right tool for a phase: `references/tooling.md`.
+- Choosing and verifying the right tool for reverse phases: `references/tooling.md`.
+- Plan → Build handoff and eng-mode mapping: `references/plan-build.md`.
 - Writing the report / field journal: `references/reporting.md`.
 
-## Engineering discipline (carried from eng-mode)
+## Engineering discipline
 
-These govern how you work in every phase.
+These govern every phase — reverse and build.
 
-- Smallest coherent probe. Do not patch five things to test one hypothesis. One change, one question, one observation.
-- Delegate wide, independent work; keep decisions and integration central. Investigation of independent regions can fan out; synthesis of the model does not.
-- Prove against the real artifact. A decompiler's guess, a plausible string, or a passing reimplementation on your own inputs is a lead, not proof.
-- Root cause over symptom. Recover the actual mechanism, not a pattern that happens to match a few cases.
-- Idempotent, rerunnable artifacts. Your repro script should produce the same result on a clean checkout. Apply `principle-make-operations-idempotent`.
-- Guard the context window. Extract the relevant region; never flood context with full dumps.
-- Candid judgment. "This target is out of scope", "static analysis is enough, no dynamic needed", or "the evidence is inconclusive" are acceptable and expected answers.
+- Smallest coherent probe, then smallest coherent change. One question or one unit at a time.
+- Reverse before build. Do not implement from an unfalsified guess.
+- Plan before code. A build without a plan re-derives the reverse work inside the editor.
+- Prove against the real artifact / recovered contract. Leads are not proof.
+- Root cause over symptom — in analysis and in bug-fix alike.
+- Idempotent, rerunnable artifacts. Apply `principle-make-operations-idempotent`.
+- Guard the context window. Extract the region that matters; never flood context with full dumps.
+- Candid judgment. Out of scope, inconclusive evidence, or "static is enough" are acceptable answers.
 
 ## Principles
 
 Read a principle leaf only when it governs the current decision (`principles/` holds short leaves adapted from eng-mode). Name each applied principle and the choice it changed in your reply. A citation without a decision is decorative.
 
-- `principle-prove-it-works` — before claiming any finding.
+- `principle-prove-it-works` — before claiming any finding or shipping a unit.
 - `principle-fix-root-causes` — when a plausible-but-shallow explanation tempts you.
-- `principle-attack-the-premise` — when repeated experiments fail the same way.
+- `principle-attack-the-premise` — when repeated experiments or fixes fail the same way.
 - `principle-explain-the-number` — before trusting a measured value.
 - `principle-guard-the-context-window` — when output or dumps threaten context budget.
-- `principle-make-operations-idempotent` — when writing repro scripts or loops.
+- `principle-make-operations-idempotent` — when writing repro scripts, loops, or lifecycle steps.
+
+When eng-mode is loaded, also apply its fuller principle set during Build (laziness, subtract-before-add, model-the-domain, test-behavior-not-implementation, sequence-verifiable-units, etc.) under the same citation rule.
 
 ## Reply
 
-Lead with the outcome: what the artifact does and whether it is proven. Then sections for evidence, the reproducible path, residual uncertainty, and authorization notes. Every claim points to an observation or carries an `[INFERENCE]` label in the same sentence. Redact secrets. Cite only artifacts read or produced this session. Never hand over a check you could run yourself.
+Lead with the outcome: what was recovered, what was planned, what was built, and what is proven. Then sections for evidence, the plan, the reproducible path, residual uncertainty, and authorization notes. Every claim points to an observation or carries an `[INFERENCE]` label in the same sentence. Redact secrets. Cite only artifacts read or produced this session. Never hand over a check you could run yourself.

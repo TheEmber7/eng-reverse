@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""repro_skeleton.py — Phase 4 (Verification) scaffold for Eng Reverse.
+"""repro_skeleton.py — Phase 6 (Verification) scaffold for Eng Reverse.
 
 A repro must be rerunnable from a clean checkout and must verify against the
 REAL artifact's own inputs/outputs, not hand-picked ones. Fill in the TODOs.
