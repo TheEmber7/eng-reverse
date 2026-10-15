@@ -2,10 +2,10 @@
 
 Eng Reverse is an original synthesis. It does not copy source files verbatim from
 either upstream; it reinterprets their ideas into one coherent skill with a fixed
-flow: **reverse engineer → plan → build with eng-mode**. Full credit and thanks
+flow: **reverse engineer → plan → build with eng-mode → thermo-nuclear self-review**. Full credit and thanks
 to both upstreams.
 
-## reverse-skill — reverse-engineering methodology (phases 1–3, 6–7)
+## reverse-skill — reverse-engineering methodology (phases 1–3, 7–8)
 - Source: https://github.com/zhaoxuya520/reverse-skill
 - License: MIT at the repository root. Copyright (c) 2026 zhaoxuya520.
   NOTE: the `CTF-Sandbox-Orchestrator/` subdirectory is licensed GPL-3.0. No code
@@ -32,6 +32,15 @@ to both upstreams.
 - Role in Eng Reverse: **Plan turns the recovered spec into a build plan; Build
   is driven by eng-mode** playbooks and principles. When eng-mode is installed in
   the session, defer to it for that phase.
+
+## Thermo-Nuclear Code Quality Review — post-build self-review (phase 6)
+- Source: the "Thermo-Nuclear Code Quality Review" agent skill, supplied by the
+  repository owner and incorporated at their request.
+- Included as `references/thermo-nuclear-review.md`, with its review standards
+  reproduced in full. Frontmatter adapted: `disable-model-invocation` dropped
+  because the review is a mandatory pipeline step here.
+- Role in Eng Reverse: after Build, the agent reviews its own diff against these
+  standards and fixes issues before Verification and before claiming done.
 
 ## License of this work
 MIT (see LICENSE). Compatible with both upstream root licenses. We deliberately

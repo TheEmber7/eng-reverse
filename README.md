@@ -1,6 +1,6 @@
 # Eng Reverse
 
-**Reverse → Plan → Build.** An agent skill that combines [zhaoxuya520/reverse-skill](https://github.com/zhaoxuya520/reverse-skill) (recover the spec) with [ajoslin/eng-mode](https://github.com/ajoslin/eng-mode) (an OMP port of Lauren Tan's *pstack*; plan and build under engineering discipline).
+**Reverse → Plan → Build → Self-review.** An agent skill that combines [zhaoxuya520/reverse-skill](https://github.com/zhaoxuya520/reverse-skill) (recover the spec) with [ajoslin/eng-mode](https://github.com/ajoslin/eng-mode) (an OMP port of Lauren Tan's *pstack*; plan and build under engineering discipline).
 
 Both upstreams matter. The order is fixed:
 
@@ -8,14 +8,16 @@ Both upstreams matter. The order is fixed:
 2. **Plan** — turn that recovered knowledge into a concrete, verifiable build plan.
 3. **Build with eng-mode** — implement under eng-mode playbooks and principles (smallest coherent change, root-cause fixes, prove against the real artifact).
 
+4. **Thermo-nuclear self-review** — review your own diff with the Thermo-Nuclear Code Quality Review standards and fix issues before claiming done.
+
 Then verify against the original artifact and document.
 
 ## What it is
 
-A single `SKILL.md` that drives a seven-phase pipeline, each phase gated by evidence or an artifact:
+A single `SKILL.md` that drives a eight-phase pipeline, each phase gated by evidence or an artifact:
 
 ```
-Recon → Analysis → Hypothesis → Plan → Build (eng-mode) → Verification → Documentation
+Recon → Analysis → Hypothesis → Plan → Build (eng-mode) → Thermo-Nuclear Self-Review → Verification → Documentation
 \______________________________/   \____________________/
          reverse recovers                   eng-mode drives
               the spec                        the build
@@ -26,8 +28,9 @@ Recon → Analysis → Hypothesis → Plan → Build (eng-mode) → Verification
 3. **Hypothesis** — falsifiable claim; survivors become the recovered spec.
 4. **Plan** — contract, deliverable, verifiable units, data shapes, risks — no production code yet.
 5. **Build (eng-mode)** — implement the plan under eng-mode playbooks/principles.
-6. **Verification** — reproduce against the artifact's own inputs/outputs.
-7. **Documentation** — Evidence → Finding → Path, plan + what shipped, field journal.
+6. **Thermo-Nuclear Self-Review** — strict maintainability review of your own diff; fix and re-review until it passes.
+7. **Verification** — reproduce against the artifact's own inputs/outputs.
+8. **Documentation** — Evidence → Finding → Path, plan + what shipped, field journal.
 
 reverse-skill's domain methodology (binary, APK/mobile, frontend JS, firmware/protocol, tooling, authorization gating, Evidence→Finding→Path) lives in `references/`. eng-mode's engineering principles are carried as short leaves under `principles/`, and Build defers to eng-mode itself when that plugin/skills are loaded. Plan→Build handoff details are in `references/plan-build.md`.
 
@@ -55,10 +58,11 @@ eng-reverse/
 │   ├── firmware-protocol.md
 │   ├── tooling.md
 │   ├── plan-build.md         # Plan → eng-mode Build mapping
+│   ├── thermo-nuclear-review.md # Phase 6 self-review standards
 │   └── reporting.md
 └── scripts/
     ├── recon.sh              # Phase 1 read-only triage helper (no network)
-    └── repro_skeleton.py     # Phase 6 verification scaffold
+    └── repro_skeleton.py     # Phase 7 verification scaffold
 ```
 
 ## Install
@@ -99,6 +103,7 @@ Agent (eng-reverse):
   Hypothesis → "key = base32(sha1(serial)[:10]) compared at 0x401abc"  → recovered spec
   Plan       → contract + verifiable units for a small checker CLI
   Build      → eng-mode feature playbook; implement unit by unit
+  Review     → thermo-nuclear self-review of the diff; simplify and fix
   Verify     → checker accepts the binary's own serial/key pairs
   Document   → Evidence→Finding→Path + plan + field-journal precedent
 ```

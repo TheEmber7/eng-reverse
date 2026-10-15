@@ -1,15 +1,16 @@
 ---
 name: eng-reverse
-description: Reverse-then-build operating mode. Recover a spec from an artifact with reverse-engineering discipline (recon, analysis, hypothesis), turn it into a build plan, then implement under eng-mode playbooks and principles, and finish with verification and documentation. Use when you must reverse engineer (binaries, APKs, firmware, obfuscated JS, protocols, CTF, authorized assessments) and then plan and build a reimplementation, port, patch, client, or compatible tool with engineering rigor.
+description: Reverse-then-build operating mode. Recover a spec from an artifact with reverse-engineering discipline (recon, analysis, hypothesis), turn it into a build plan, then implement under eng-mode playbooks and principles, run a thermo-nuclear code quality self-review of the diff, and finish with verification and documentation. Use when you must reverse engineer (binaries, APKs, firmware, obfuscated JS, protocols, CTF, authorized assessments) and then plan and build a reimplementation, port, patch, client, or compatible tool with engineering rigor.
 ---
 
 # Eng Reverse
 
-**Reverse → Plan → Build.** Both reverse-skill and eng-mode matter; the order is fixed.
+**Reverse → Plan → Build → Self-review.** Both reverse-skill and eng-mode matter; the order is fixed.
 
 1. **Reverse** recovers the spec from the artifact (evidence, not vibes).
 2. **Plan** turns that recovered knowledge into a concrete build plan.
 3. **Build** uses eng-mode discipline — smallest coherent change, root-cause fixes, prove against the real artifact — to implement the plan.
+4. **Self-review** runs the Thermo-Nuclear Code Quality Review on your own diff and fixes what it finds before anything is called done.
 
 Understand the artifact before you write code. Smallest coherent probe, then smallest coherent change. Every claim traces to an observation; every deliverable is proven.
 
@@ -25,13 +26,13 @@ Reverse engineering and security testing are only legitimate on artifacts you ow
 
 ## The pipeline
 
-Work moves through seven phases. Skip a phase only with an explicit, written reason. Each phase ends with evidence or an artifact, not a feeling.
+Work moves through eight phases. Skip a phase only with an explicit, written reason. Each phase ends with evidence or an artifact, not a feeling.
 
 ```
-Recon → Analysis → Hypothesis → Plan → Build (eng-mode) → Verification → Documentation
-\______________________________/   \____________________/
-         reverse recovers                   eng-mode drives
-              the spec                        the build
+Recon → Analysis → Hypothesis → Plan → Build (eng-mode) → Thermo-Nuclear Self-Review → Verification → Documentation
+\______________________________/   \____________________/   \________________________/
+         reverse recovers                   eng-mode drives         review your own diff,
+              the spec                        the build            fix before claiming done
 ```
 
 ### 1. Recon
@@ -88,7 +89,18 @@ Implement the plan under eng-mode discipline. This is where eng-mode owns the wo
 - Do not reopen reverse analysis mid-build unless Verification falsifies the recovered spec. If it does, return to Hypothesis with the new evidence — do not patch around a wrong model.
 - If eng-mode itself is installed in the session (`/eng-mode` or sibling eng-mode skills), defer playbook routing, todo ownership, and delegation rules to it for this phase. This skill's Build section is the portable subset when eng-mode is not loaded.
 
-### 6. Verification
+### 6. Thermo-Nuclear Self-Review
+
+After implementing, review your own work before claiming anything is done. Load `references/thermo-nuclear-review.md` and apply it in full to the diff you just produced.
+
+- Scope: every change from Build (`git diff` against the pre-build base, plus new files). You are the author and the reviewer; hold your own code to the approval bar, not a lower one.
+- Be ambitious: look for "code judo" restructurings that make branches, helpers, modes, or layers disappear while preserving behavior.
+- Flag aggressively: giant files/functions, spaghetti conditionals, leaky or premature abstractions, duplicated logic, unclear names, dead code, and anything the reference lists.
+- Fix, don't just report. Apply the remedies under eng-mode discipline (smallest coherent change, behavior unchanged), then re-review the updated diff. Loop until the reference's approval bar is met.
+- Anything you consciously leave unfixed must be listed with a reason in the reply. Do not enter Verification with known violations silently carried.
+- If a restructuring would change behavior or the recovered contract, it is not a review fix: go back to Plan.
+
+### 7. Verification
 
 Prove the build against the recovered contract and the original artifact.
 
@@ -98,7 +110,7 @@ Prove the build against the recovered contract and the original artifact.
 - Explain any measured number (timing, entropy, match rates) — rule out that you measured something other than the mechanism. Apply `principle-explain-the-number`.
 - If Verification fails, diagnose whether the failure is in Build (fix under eng-mode) or in the recovered spec (return to Hypothesis → Plan). Do not silently widen scope.
 
-### 7. Documentation
+### 8. Documentation
 
 Capture both the reverse findings and the build so the next person inherits them.
 
@@ -118,6 +130,7 @@ Pick the narrowest relevant reference. Load it only when the phase needs it; do 
 - Firmware image, embedded device, protocol/traffic replay: `references/firmware-protocol.md`.
 - Choosing and verifying the right tool for reverse phases: `references/tooling.md`.
 - Plan → Build handoff and eng-mode mapping: `references/plan-build.md`.
+- Post-build self-review standards: `references/thermo-nuclear-review.md` (always, in phase 6).
 - Writing the report / field journal: `references/reporting.md`.
 
 ## Engineering discipline
@@ -127,6 +140,7 @@ These govern every phase — reverse and build.
 - Smallest coherent probe, then smallest coherent change. One question or one unit at a time.
 - Reverse before build. Do not implement from an unfalsified guess.
 - Plan before code. A build without a plan re-derives the reverse work inside the editor.
+- Review your own diff thermo-nuclear style and fix it before claiming done.
 - Prove against the real artifact / recovered contract. Leads are not proof.
 - Root cause over symptom — in analysis and in bug-fix alike.
 - Idempotent, rerunnable artifacts. Apply `principle-make-operations-idempotent`.
@@ -148,4 +162,4 @@ When eng-mode is loaded, also apply its fuller principle set during Build (lazin
 
 ## Reply
 
-Lead with the outcome: what was recovered, what was planned, what was built, and what is proven. Then sections for evidence, the plan, the reproducible path, residual uncertainty, and authorization notes. Every claim points to an observation or carries an `[INFERENCE]` label in the same sentence. Redact secrets. Cite only artifacts read or produced this session. Never hand over a check you could run yourself.
+Lead with the outcome: what was recovered, what was planned, what was built, what the self-review found and fixed (and anything left, with reasons), and what is proven. Then sections for evidence, the plan, the reproducible path, residual uncertainty, and authorization notes. Every claim points to an observation or carries an `[INFERENCE]` label in the same sentence. Redact secrets. Cite only artifacts read or produced this session. Never hand over a check you could run yourself.

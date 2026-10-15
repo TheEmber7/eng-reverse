@@ -36,3 +36,7 @@ Rules of thumb:
 When `/eng-mode` or eng-mode skills are available in the session, defer playbook routing, todo ownership, and delegation to them. This skill's Build section is the portable subset otherwise.
 
 Upstream: https://github.com/ajoslin/eng-mode
+
+## Handoff to Self-Review (phase 6)
+
+When Build lands, do not go straight to Verification. Run `references/thermo-nuclear-review.md` against your own diff, fix what it flags, and re-review until it meets the approval bar.
