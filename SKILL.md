@@ -1,6 +1,6 @@
 ---
 name: eng-reverse
-description: Reverse-then-build operating mode. Recover a spec from an artifact with reverse-engineering discipline (recon, analysis, hypothesis), turn it into a build plan, then implement under eng-mode playbooks and principles, run a thermo-nuclear code quality self-review of the diff, and finish with verification and documentation. Use when you must reverse engineer (binaries, APKs, firmware, obfuscated JS, protocols, CTF, authorized assessments) and then plan and build a reimplementation, port, patch, client, or compatible tool with engineering rigor.
+description: Reverse-then-build operating mode for interoperability and reimplementation. Recover a spec from an artifact you own or are explicitly authorized to analyze, using reverse-engineering discipline (recon, analysis, hypothesis), turn it into a build plan, then implement under eng-mode playbooks and principles, run a thermo-nuclear code quality self-review of the diff, and finish with verification and documentation. Use when you need to understand an artifact and then plan and build a compatible reimplementation, port, patch, client, or tool with engineering rigor — for interoperability, maintenance, or authorized assessment.
 ---
 
 # Eng Reverse

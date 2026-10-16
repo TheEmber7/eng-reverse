@@ -6,13 +6,13 @@ Phase mapping: Recon → Analysis → Verification. Adapt depth to the artifact.
 - Identify: `file`, `rabin2 -I`, magic bytes, arch/bitness, endianness, static vs dynamic linking.
 - Packer/obfuscator: entropy scan (`binwalk -E`), unusual section names (UPX, `.themida`), tiny `.text` + huge packed section.
 - Inventory: `strings -a -n 6`, `rabin2 -z` (data strings), `rabin2 -i` (imports), `rabin2 -E`/`-s` (exports/symbols), `readelf -a`, `objdump -d`.
-- Mitigations: `checksec` (NX, PIE, RELRO, canary) for exploitation targets.
+- Mitigations: `checksec` (NX, PIE, RELRO, canary) for security assessment.
 
 ## Analysis
 - Disassemble/decompile the narrowest function: radare2 (`r2 -A`, `pdf @ sym.main`), Ghidra/IDA/Binary Ninja for a decompiler view.
 - Trace data flow for the value you care about (compared key, flag check, crypto constant). Follow XREFs to the comparison, not just the string.
 - Dynamic within authorization: `gdb`/`pwndbg`, `ltrace`/`strace` for syscalls/libcalls, `frida`/`qiling`/`unicorn` for emulation of a single routine.
-- Anti-debug: detect `ptrace`, timing checks, int3 scans; patch or hook the narrowest check to proceed.
+- Anti-debug: identify and document anti-analysis mechanisms (`ptrace`, timing checks, int3 scans). For owned or CTF samples under the SKILL.md authorization gate, you may neutralize the narrowest check to continue your own analysis.
 
 ## Verification
 - Reconstruct the algorithm in a standalone script and confirm it reproduces the program's own accept condition on the program's own inputs.
