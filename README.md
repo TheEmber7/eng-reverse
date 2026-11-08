@@ -12,6 +12,8 @@ Both upstreams matter. The order is fixed:
 
 Then verify against the original artifact and document.
 
+[![Architecture diagram of theember7/eng-reverse](https://gitdiagram.com/theember7/eng-reverse/diagram.png)](https://gitdiagram.com/theember7/eng-reverse?utm_source=readme&utm_medium=picture)
+
 ## What it is
 
 A single `SKILL.md` that drives a eight-phase pipeline, each phase gated by evidence or an artifact:
