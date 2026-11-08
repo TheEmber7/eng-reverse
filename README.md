@@ -12,7 +12,8 @@ Both upstreams matter. The order is fixed:
 
 Then verify against the original artifact and document.
 
-[![Architecture diagram of theember7/eng-reverse](https://gitdiagram.com/theember7/eng-reverse/diagram.png)](https://gitdiagram.com/theember7/eng-reverse?utm_source=readme&utm_medium=picture)
+<img width="7057" height="7533" alt="diagram" src="https://github.com/user-attachments/assets/42511f40-a24e-40ef-a627-ec46352b1388" />
+
 
 ## What it is
 
