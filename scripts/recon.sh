@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# recon.sh — Phase 1 (Recon) helper for Eng Reverse.
+# recon.sh — Phase 1 (Recon) helper for Architect Eng Reverse.
 # Read-only triage of a local artifact. Does NOT touch any network or live target.
 # Usage: ./recon.sh <path-to-artifact> [outdir]
 set -euo pipefail
@@ -8,7 +8,7 @@ ARTIFACT="${1:?usage: recon.sh <artifact> [outdir]}"
 OUT="${2:-recon-out}"
 mkdir -p "$OUT"
 
-echo "[*] Eng Reverse recon on: $ARTIFACT"
+echo "[*] Architect Eng Reverse recon on: $ARTIFACT"
 echo "[*] Output: $OUT"
 
 have() { command -v "$1" >/dev/null 2>&1; }

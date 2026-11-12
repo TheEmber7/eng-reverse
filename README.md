@@ -1,4 +1,4 @@
-# Eng Reverse
+# Architect Eng Reverse
 
 **Reverse → Plan → Build → Self-review.** An agent skill that combines [zhaoxuya520/reverse-skill](https://github.com/zhaoxuya520/reverse-skill) (recover the spec) with [ajoslin/eng-mode](https://github.com/ajoslin/eng-mode) (an OMP port of Lauren Tan's *pstack*; plan and build under engineering discipline).
 
@@ -42,7 +42,7 @@ reverse-skill's domain methodology (binary, APK/mobile, frontend JS, firmware/pr
 ## Layout
 
 ```
-eng-reverse/
+architect-eng-reverse/
 ├── SKILL.md                  # the combined skill (frontmatter: name, description)
 ├── README.md                 # this file
 ├── LICENSE                   # MIT
@@ -76,23 +76,34 @@ This is a standard agent "skill" folder. Drop it where your agent discovers skil
 Project-scoped:
 ```sh
 mkdir -p .claude/skills
-cp -r eng-reverse .claude/skills/eng-reverse
+cp -r architect-eng-reverse .claude/skills/architect-eng-reverse
 ```
-Or user-scoped: copy into `~/.claude/skills/eng-reverse`. Claude Code reads the frontmatter `name`/`description` and loads the skill when a task matches.
+Or user-scoped: copy into `~/.claude/skills/architect-eng-reverse`. Claude Code reads the frontmatter `name`/`description` and loads the skill when a task matches.
 
 ### Cursor
 ```sh
 mkdir -p .cursor/skills        # project-scoped (or ~/.cursor/skills for user-scoped)
-cp -r eng-reverse .cursor/skills/eng-reverse
+cp -r architect-eng-reverse .cursor/skills/architect-eng-reverse
 ```
 
 ### OMP / `.agents` layout (eng-mode native)
 ```sh
 mkdir -p .agents/skills
-cp -r eng-reverse .agents/skills/eng-reverse
+cp -r architect-eng-reverse .agents/skills/architect-eng-reverse
 ```
 
-For the full Build phase, also install [eng-mode](https://github.com/ajoslin/eng-mode) (`omp plugin install github:ajoslin/eng-mode`) so playbook routing and principles are available. Eng Reverse's Build section is the portable subset when eng-mode is not loaded.
+For the full Build phase, also install [eng-mode](https://github.com/ajoslin/eng-mode) so playbook routing and principles are available:
+
+- **OMP:** `omp plugin install github:ajoslin/eng-mode`.
+- **Claude Code:** eng-mode is a thin adapter on [pstack-claude](https://github.com/michael-denyer/pstack-claude). Install pstack first, then run eng-mode's installer from a checkout, and start a new session:
+  ```sh
+  claude plugin marketplace add michael-denyer/pstack-claude
+  claude plugin install pstack@pstack-claude
+  git clone https://github.com/ajoslin/eng-mode && cd eng-mode && bun run claude:install
+  ```
+  `/eng-mode TASK` then runs pstack's `poteto-mode`.
+
+Architect Eng Reverse's Build section is the portable subset when eng-mode is not loaded.
 
 After copying, start a session and invoke it by task ("reverse this APK's request signing and build a compatible client") or by name. Helpers: `scripts/recon.sh <artifact>` for read-only triage; `scripts/repro_skeleton.py` as a verification scaffold.
 
@@ -100,7 +111,7 @@ After copying, start a session and invoke it by task ("reverse this APK's reques
 
 ```
 You: "Figure out how this binary checks the license key, then build a compatible checker."
-Agent (eng-reverse):
+Agent (architect-eng-reverse):
   Recon      → file/rabin2/strings, spots the compared constant region
   Analysis   → decompiles the check, traces the comparison data flow
   Hypothesis → "key = base32(sha1(serial)[:10]) compared at 0x401abc"  → recovered spec

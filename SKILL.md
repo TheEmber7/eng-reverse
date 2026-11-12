@@ -1,9 +1,9 @@
 ---
-name: eng-reverse
+name: architect-eng-reverse
 description: Reverse-then-build operating mode for interoperability and reimplementation. Recover a spec from an artifact you own or are explicitly authorized to analyze, using reverse-engineering discipline (recon, analysis, hypothesis), turn it into a build plan, then implement under eng-mode playbooks and principles, run a thermo-nuclear code quality self-review of the diff, and finish with verification and documentation. Use when you need to understand an artifact and then plan and build a compatible reimplementation, port, patch, client, or tool with engineering rigor — for interoperability, maintenance, or authorized assessment.
 ---
 
-# Eng Reverse
+# Architect Eng Reverse
 
 **Reverse → Plan → Build → Self-review.** Both reverse-skill and eng-mode matter; the order is fixed.
 
@@ -71,6 +71,8 @@ Turn the recovered spec into a build plan. Do not start writing production code 
 - Choose the deliverable: reimplementation, compatible client, port, patch, decoder, test harness, or documentation-only — and say why that choice is the smallest that satisfies the goal.
 - Decompose into verifiable units: ordered steps, each with an observable acceptance check. Prefer a thin vertical slice that proves the core contract first.
 - Name data shapes and module boundaries before APIs. Apply eng-mode's `principle-model-the-domain` and `principle-sequence-verifiable-units`.
+- When the deliverable introduces or changes a module interface, route its shape through eng-mode's `architect`: sketch types, signatures, and module boundaries with `not implemented` bodies before writing code, and fill in against the chosen sketch in Build.
+- Delegate wide exploration of the original artifact or the target codebase to subagents that return pointers, not dumps. Match each subagent's effort to its job (see Build).
 - Call out risks, open `[INFERENCE]` gaps, and what will be proven in Verification versus assumed.
 - Exit criterion: a short plan artifact (in the reply or a file) that a fresh eng-mode session could execute without re-deriving the reverse work. See `references/plan-build.md`.
 
@@ -87,7 +89,9 @@ Implement the plan under eng-mode discipline. This is where eng-mode owns the wo
   - `principle-make-operations-idempotent` for scripts and lifecycle steps.
 - Prove against the **real** contract recovered in reverse: call the code the way its users (or the original artifact) do. A green unit test that never exercises the recovered surface is not enough.
 - Do not reopen reverse analysis mid-build unless Verification falsifies the recovered spec. If it does, return to Hypothesis with the new evidence — do not patch around a wrong model.
-- If eng-mode itself is installed in the session (`/eng-mode` or sibling eng-mode skills), defer playbook routing, todo ownership, and delegation rules to it for this phase. This skill's Build section is the portable subset when eng-mode is not loaded.
+- Match effort to the job when delegating: high for the hardest or subtlest units (cross-cutting design, concurrency, subtle algorithms), medium for judgment and review, low for routine or mechanical edits. Leave verification at full effort, so a verdict never runs on reduced thinking.
+- Fresh workers by default: give a fix round, retry, or next unit to a new agent with the consolidated brief and the prior report, rather than resuming the old one.
+- If eng-mode itself is installed in the session (`/eng-mode` or sibling eng-mode skills), defer playbook routing, todo ownership, and delegation rules to it for this phase. In Claude Code, `/eng-mode TASK` is eng-mode's alias for pstack's `poteto-mode`, so pstack owns the playbooks there. This skill's Build section is the portable subset when eng-mode is not loaded.
 
 ### 6. Thermo-Nuclear Self-Review
 
