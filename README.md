@@ -6,7 +6,7 @@ Both upstreams matter. The order is fixed:
 
 1. **Reverse engineer** — recover the contract from the artifact with evidence.
 2. **Plan** — turn that recovered knowledge into a concrete, verifiable build plan.
-3. **Build with eng-mode** — implement under eng-mode playbooks and principles (smallest coherent change, root-cause fixes, prove against the real artifact).
+3. **Build with [eng-mode](https://github.com/ajoslin/eng-mode)** — implement under eng-mode playbooks and principles (smallest coherent change, root-cause fixes, prove against the real artifact).
 
 4. **Thermo-nuclear self-review** — review your own diff with the Thermo-Nuclear Code Quality Review standards and fix issues before claiming done.
 
