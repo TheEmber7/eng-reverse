@@ -1,10 +1,10 @@
 ---
 name: thermo-nuclear-code-quality-review
-description: Strict maintainability self-review run by Eng Reverse after Build (phase 6). Review your own diff for abstraction quality, giant files, and spaghetti-condition growth, then fix before claiming done.
+description: Strict maintainability self-review run by Architect Eng Reverse after Build (phase 6). Review your own diff for abstraction quality, giant files, and spaghetti-condition growth, then fix before claiming done.
 source: Thermo-Nuclear Code Quality Review skill, incorporated at the user's request
 ---
 
-> **In Eng Reverse:** this is phase 6, *Thermo-Nuclear Self-Review*. It always runs after Build and before Verification, and it targets **your own** changes. The upstream `disable-model-invocation: true` flag is dropped: inside this pipeline the review is mandatory, not opt-in. The standards below are reproduced in full.
+> **In Architect Eng Reverse:** this is phase 6, *Thermo-Nuclear Self-Review*. It always runs after Build and before Verification, and it targets **your own** changes. The upstream `disable-model-invocation: true` flag is dropped: inside this pipeline the review is mandatory, not opt-in. The standards below are reproduced in full.
 
 # Thermo-Nuclear Code Quality Review
 
@@ -33,16 +33,16 @@ Apply the baseline prompt above, plus these explicit review rules:
    - Assume there is often a "code judo" move available: a re-organization that uses the existing architecture more effectively and makes the change dramatically simpler and more elegant.
    - If you see a path to delete complexity rather than rearrange it, push hard for that path.
 
-1. **Do not let a PR push a file from under 1k lines to over 1k lines without a very strong reason.**
-   - Treat this as a strong code-quality smell by default.
-   - Prefer extracting helpers, subcomponents, modules, or local abstractions instead of letting a file sprawl past 1000 lines.
-   - If the diff crosses that threshold, explicitly ask whether the code should be decomposed first.
-   - Only waive this if there is a compelling structural reason and the resulting file is still clearly organized.
+1. **Do not let a PR push a file from under 1,500 lines to over 1,500 lines, or touch more than 50 files, without a very strong reason.**
+   - Treat either threshold as a strong code-quality smell by default.
+   - Prefer deleting sprawl or using a split this stack already has. Do not extract a new helper, subcomponent, module, or local abstraction to dodge either cap.
+   - If the diff crosses either threshold, explicitly ask whether complexity or scope should be reduced first.
+   - Only waive a threshold if there is a compelling structural reason and the resulting file or change remains clearly organized.
 
 2. **Do not allow random spaghetti growth in existing code.**
    - Be highly suspicious of new ad-hoc conditionals, scattered special cases, or one-off branches inserted into unrelated flows.
    - If a change adds "weird if statements in random places", treat that as a design problem, not a stylistic nit.
-   - Prefer pushing the logic into a dedicated abstraction, helper, state machine, policy object, or separate module instead of tangling an existing path.
+   - Prefer deleting the tangle or moving the logic onto the path that already owns it. Do not invent a dedicated abstraction, helper, state machine, policy object, or module for the finding.
    - Call out changes that make the surrounding code harder to reason about, even if they technically work.
 
 3. **Bias toward cleaning the design, not just accepting working code.**
@@ -77,11 +77,11 @@ For every meaningful change, ask:
 - Is there a "code judo" move that would make this dramatically simpler?
 - Can this change be reframed so fewer concepts, branches, or helper layers are needed?
 - Does this improve or worsen the local architecture?
-- Did the diff add branching complexity where a better abstraction should exist?
+- Did the diff add branching complexity that delete or reuse would collapse?
 - Did a previously cohesive module become more coupled, more stateful, or harder to scan?
 - Is this logic living in the right file and layer?
 - Did this change enlarge a file or component past a healthy size boundary?
-- Are there repeated conditionals that signal a missing model or missing helper?
+- Are there repeated conditionals that a delete or an existing pattern would collapse?
 - Is the implementation direct and legible, or does it rely on special cases and incidental control flow?
 - Is this abstraction actually earning its keep, or is it just a wrapper?
 - Did the diff introduce casts, optionality, or ad-hoc object shapes that obscure the real invariant?
@@ -94,14 +94,14 @@ Escalate findings when you see:
 
 - A complicated implementation where a cleaner reframing could delete whole categories of complexity.
 - Refactors that move code around but fail to reduce the number of concepts a reader must hold in their head.
-- A file crossing 1000 lines due to the PR, especially if the new code could be split out.
+- A file crossing 1500 lines, or a PR touching more than 50 files, especially if the new code or scope could be reduced.
 - New conditionals bolted onto unrelated code paths.
 - One-off booleans, nullable modes, or flags that complicate existing control flow.
 - Feature-specific logic leaking into general-purpose modules.
 - Generic "magic" handling that hides simple structure and makes the code harder to reason about.
 - Thin wrappers or identity abstractions that add indirection without simplifying anything.
 - Unnecessary casts, `any`, `unknown`, or optional params that muddy the real contract.
-- Copy-pasted logic instead of extracted helpers.
+- Copy-pasted logic instead of the canonical helper this stack already has.
 - Narrow edge-case handling implemented in the middle of an already busy function.
 - Refactors that technically pass tests but make the code less modular or less readable.
 - "Temporary" branching that is likely to become permanent debt.
@@ -112,17 +112,19 @@ Escalate findings when you see:
 
 ## Preferred Remedies
 
+Preferred remedies delete complexity. Narrow the instance. Reuse a pattern this stack already has. New helpers, queues, guards, or adapters only if this stack already does that for a named exclusive resource. If the honest remedy extends the change, new durable state, schema, subsystem, or extra surface, escalate. Do not prescribe it as the fix.
+
 When you identify a code-quality problem, prefer suggestions like:
 
 - Delete a whole layer of indirection rather than polishing it.
 - Reframe the state model so conditionals disappear instead of getting centralized.
 - Change the ownership boundary so the feature becomes a natural extension of an existing abstraction.
 - Turn special-case logic into a simpler default flow with fewer exceptions.
-- Extract a helper or pure function.
-- Split a large file into smaller focused modules.
-- Move feature-specific logic behind a dedicated abstraction.
-- Replace condition chains with a typed model or explicit dispatcher.
-- Separate orchestration from business logic.
+- Delete or reuse before extracting. A new helper or pure function only if this stack already has that shape for a named exclusive resource.
+- Shrink a large file by deleting complexity, not by inventing a new module for the finding.
+- Move feature-specific logic to the owner that already exists. Do not invent a dedicated abstraction, state machine, or policy object.
+- Collapse condition chains into the typed model or dispatcher this stack already uses.
+- Separate orchestration from business logic only when that deletes a layer, not when it adds one.
 - Collapse duplicate branches into a single clearer flow.
 - Delete wrappers that do not meaningfully clarify the API.
 - Reuse the existing canonical helper instead of introducing a near-duplicate.
@@ -143,8 +145,8 @@ If the implementation missed an opportunity for a dramatic simplification, say t
 
 Good phrases:
 
-- `this pushes the file past 1k lines. can we decompose this first?`
-- `this adds another special-case branch into an already busy flow. can we move this behind its own abstraction?`
+- `this pushes the file past 1,500 lines or the PR past 50 files. can we reduce complexity or scope first?`
+- `this adds another special-case branch into an already busy flow. can we delete the branch or put it on the path that already owns this?`
 - `this works, but it makes the surrounding code more spaghetti. let's keep the behavior and restructure the implementation.`
 - `this feels like feature logic leaking into a shared path. can we isolate it?`
 - `this abstraction seems unnecessary. can we just keep the direct flow?`
@@ -171,21 +173,23 @@ Prefer a smaller number of high-conviction comments over a long list of cosmetic
 ## Approval Bar
 
 Do not approve merely because behavior seems correct.
+Missed delete-complexity stays a blocker. A "fix" that adds machinery is not a pass.
 The bar for approval is:
 
 - no clear structural regression
-- no obvious missed opportunity to make the implementation dramatically simpler when such a path is visible
+- no obvious missed opportunity to delete complexity when such a path is visible
+- no "fix" that adds machinery
 - no unjustified file-size explosion
 - no obvious spaghetti-growth from special-case branching
 - no obviously hacky or magical abstraction that makes the code harder to reason about
 - no unnecessary wrapper/cast/optionality churn obscuring the real design
 - no clear architecture-boundary leak or avoidable canonical-helper duplication
-- no missed opportunity for an obvious decomposition that would materially improve maintainability
+- no missed opportunity to delete complexity that would materially improve maintainability
 
 Treat these as presumptive blockers unless the author can justify them clearly:
 
 - the PR preserves a lot of incidental complexity when there is a plausible code-judo move that would delete it
-- the PR pushes a file from below 1000 lines to above 1000 lines
+- the PR pushes a file from below 1500 lines to above 1500 lines, or touches more than 50 files
 - the PR adds ad-hoc branching that makes an existing flow more tangled
 - the PR solves a local problem by scattering feature checks across shared code
 - the PR adds an unnecessary abstraction, wrapper, or cast-heavy contract that makes the design more indirect
